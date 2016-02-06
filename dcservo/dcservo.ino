@@ -13,8 +13,8 @@
 #include <PID_v1.h>
 #define encoder0PinA      2   // Needs to be on D2 to allow attachment to INT0. see setup()
 #define encoder0PinB      8   // Needs to be on this pin for Pin Change Interrrupt to work. see pciSetup()
-// DirInput              A0   // Needs to be on A0(D14) to match port masking in ISR.  See countStep()
-// stepInput              3   // Needs to be on D3 to allow attachment to INT1.  see setup()
+#define DIR_INPUT        A0   // Needs to be on A0(D14) to match port masking in ISR.  See countStep()
+#define STEP_INPUT        3   // Needs to be on D3 to allow attachment to INT1.  see setup()
 #define M1                9   // Motor's Forward PWM output
 #define M2               10   // Motor's Backward PWM output
 
@@ -59,8 +59,8 @@ void pciSetup(byte pin)
 
 void setup()
 { 
-  pinMode(encoder0PinA, INPUT);
-  pinMode(encoder0PinB, INPUT);  
+  pinMode(encoder0PinA, INPUT_PULLUP);
+  pinMode(encoder0PinB, INPUT_PULLUP);  
   
   pinMode(MANUAL_FWD, INPUT_PULLUP);
   pinMode(MANUAL_REV, INPUT_PULLUP);
@@ -70,8 +70,12 @@ void setup()
   
   pciSetup(encoder0PinB);
   attachInterrupt(0, encoderInt, CHANGE);  // encoder pin on interrupt 0 - pin 2
-  attachInterrupt(1, countStep      , RISING);  // step  input on interrupt 1 - pin 3
+  attachInterrupt(1, countStep,  RISING);  // step  input on interrupt 1 - pin 3
   TCCR1B = TCCR1B & 0b11111000 | 1; // set 31Kh PWM
+  
+  digitalWrite(DIR_INPUT, 1);  //activate weak pull-ups on inputs
+  digitalWrite(STEP_INPUT, 1); //activate weak pull-ups on inputs
+  
   Serial.begin (115200);
   help();
   recoverPIDfromEEPROM();
